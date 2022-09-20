@@ -8,7 +8,7 @@ use cw_storage_plus::{Item, Map};
 pub struct Config {
     pub owner: Addr,
     pub cw20_addr: Addr,
-    pub fee_percent: Uint128
+    pub fee_percent: Uint128,
 }
 
 pub const CONFIG: Item<Config> = Item::new("config");

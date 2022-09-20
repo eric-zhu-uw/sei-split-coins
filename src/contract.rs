@@ -1,13 +1,15 @@
+use crate::error::ContractError;
+use crate::msg::{
+    ExecuteMsg, FeeResponse, InstantiateMsg, OwnerResponse, QueryMsg, WalletResponse,
+};
+use crate::state::{Config, CONFIG, WALLETS};
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
-use cw2::set_contract_version;
 use cosmwasm_std::{
-    coins, to_binary, Addr, BankMsg, Binary, Deps, DepsMut, Env, MessageInfo,
-    Response, StdResult, Uint128,
+    coins, to_binary, Addr, BankMsg, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult,
+    Uint128,
 };
-use crate::error::ContractError;
-use crate::msg::{ExecuteMsg, InstantiateMsg, OwnerResponse, QueryMsg, WalletResponse, FeeResponse};
-use crate::state::{Config, CONFIG, WALLETS};
+use cw2::set_contract_version;
 
 // version info for migration info
 const CONTRACT_NAME: &str = "crates.io:sei-split-coins";
@@ -24,7 +26,7 @@ pub fn instantiate(
     set_contract_version(deps.storage, CONTRACT_NAME, CONTRACT_VERSION)?;
 
     let fee_percent = msg.fee_percent.unwrap_or(Uint128::new(0));
-    if fee_percent > Uint128::new(100)  {
+    if fee_percent > Uint128::new(100) {
         return Err(ContractError::InvalidParams {});
     }
 
@@ -36,7 +38,7 @@ pub fn instantiate(
     let config = Config {
         owner: owner.clone(),
         cw20_addr: deps.api.addr_validate(msg.cw20_addr.as_str())?,
-        fee_percent: fee_percent
+        fee_percent: fee_percent,
     };
 
     CONFIG.save(deps.storage, &config)?;
@@ -93,22 +95,20 @@ pub fn execute_split_coins(
         deps.storage,
         target_addr1.clone(),
         |balance| -> StdResult<_> {
-            Ok(balance.unwrap_or_default().checked_add(half_amount + (amount % Uint128::new(2)))?)
+            Ok(balance
+                .unwrap_or_default()
+                .checked_add(half_amount + (amount % Uint128::new(2)))?)
         },
     )?;
     WALLETS.update(
         deps.storage,
         target_addr2.clone(),
-        |balance| -> StdResult<_> {
-            Ok(balance.unwrap_or_default().checked_add(half_amount)?)
-        },
+        |balance| -> StdResult<_> { Ok(balance.unwrap_or_default().checked_add(half_amount)?) },
     )?;
     WALLETS.update(
         deps.storage,
         config.cw20_addr.clone(),
-        |balance| -> StdResult<_> {
-            Ok(balance.unwrap_or_default().checked_add(fees_collected)?)
-        }
+        |balance| -> StdResult<_> { Ok(balance.unwrap_or_default().checked_add(fees_collected)?) },
     )?;
 
     let res = Response::new()
@@ -116,7 +116,10 @@ pub fn execute_split_coins(
         .add_attribute("from", info.sender)
         .add_attribute("amount", amount)
         .add_attribute("target_addr1", target_addr1)
-        .add_attribute("target_addr1_amount", half_amount + (amount % Uint128::new(2)))
+        .add_attribute(
+            "target_addr1_amount",
+            half_amount + (amount % Uint128::new(2)),
+        )
         .add_attribute("target_addr2", target_addr2)
         .add_attribute("target_addr2_amount", half_amount)
         .add_attribute("fees_collected", fees_collected);
@@ -143,10 +146,10 @@ pub fn execute_withdraw_coins(
                 Some(_) => {
                     withdraw_amount = amount.unwrap_or_else(|| balance.unwrap());
                     balance
-                    .unwrap()
-                    .checked_sub(withdraw_amount)
-                    .or_else(|_| Err(ContractError::InsufficientFunds {}))
-                },
+                        .unwrap()
+                        .checked_sub(withdraw_amount)
+                        .or_else(|_| Err(ContractError::InsufficientFunds {}))
+                }
                 None => Err(ContractError::InsufficientFunds {}),
             }
         },
@@ -162,13 +165,12 @@ pub fn execute_withdraw_coins(
         .add_attribute("amount", withdraw_amount))
 }
 
-
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
         QueryMsg::GetOwner {} => to_binary(&query_owner(deps)?),
         QueryMsg::GetWallet { addr } => to_binary(&query_wallet(deps, addr)?),
-        QueryMsg::GetFee {} => to_binary(&query_fee(deps)?)
+        QueryMsg::GetFee {} => to_binary(&query_fee(deps)?),
     }
 }
 
@@ -192,6 +194,6 @@ fn query_fee(deps: Deps) -> StdResult<FeeResponse> {
 
     Ok(FeeResponse {
         addr: config.cw20_addr,
-        fee_percent: config.fee_percent
+        fee_percent: config.fee_percent,
     })
 }

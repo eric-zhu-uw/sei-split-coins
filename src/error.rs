@@ -17,5 +17,5 @@ pub enum ContractError {
     InsufficientFunds {},
 
     #[error("Invalid Token Transfer")]
-    InvalidTokenTransfer {}
+    InvalidTokenTransfer {},
 }

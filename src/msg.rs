@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 pub struct InstantiateMsg {
     pub owner: Option<String>,
     pub cw20_addr: String,
-    pub fee_percent: Option<Uint128>
+    pub fee_percent: Option<Uint128>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
@@ -26,7 +26,7 @@ pub enum ExecuteMsg {
 pub enum QueryMsg {
     GetOwner {},
     GetWallet { addr: Addr },
-    GetFee {}
+    GetFee {},
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
@@ -43,5 +43,5 @@ pub struct WalletResponse {
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct FeeResponse {
     pub addr: Addr,
-    pub fee_percent: Uint128
+    pub fee_percent: Uint128,
 }

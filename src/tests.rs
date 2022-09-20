@@ -4,9 +4,7 @@ mod tests {
     use crate::error::ContractError;
     use crate::msg::{ExecuteMsg, InstantiateMsg, OwnerResponse, QueryMsg, WalletResponse};
     use crate::state::{CONFIG, WALLETS};
-    use cosmwasm_std::testing::{
-        mock_dependencies, mock_env, mock_info, MOCK_CONTRACT_ADDR,
-    };
+    use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info, MOCK_CONTRACT_ADDR};
     use cosmwasm_std::{coin, coins, BankMsg, Uint128};
     use cosmwasm_std::{from_binary, Addr, CosmosMsg};
 
@@ -16,7 +14,7 @@ mod tests {
         let msg = InstantiateMsg {
             owner: None,
             cw20_addr: String::from(MOCK_CONTRACT_ADDR),
-            fee_percent: None
+            fee_percent: None,
         };
         let info = mock_info(MOCK_CONTRACT_ADDR, &[]);
         instantiate(deps.as_mut(), mock_env(), info.clone(), msg).unwrap();
@@ -31,7 +29,7 @@ mod tests {
         let msg = InstantiateMsg {
             owner: Some(String::from("eric")),
             cw20_addr: String::from(MOCK_CONTRACT_ADDR),
-            fee_percent: None
+            fee_percent: None,
         };
         let info = mock_info(MOCK_CONTRACT_ADDR, &[]);
         instantiate(deps.as_mut(), mock_env(), info.clone(), msg).unwrap();
@@ -46,7 +44,7 @@ mod tests {
         let msg = InstantiateMsg {
             owner: None,
             cw20_addr: String::from(MOCK_CONTRACT_ADDR),
-            fee_percent: None
+            fee_percent: None,
         };
         let info = mock_info(MOCK_CONTRACT_ADDR, &[]);
         instantiate(deps.as_mut(), mock_env(), info.clone(), msg).unwrap();
@@ -62,7 +60,7 @@ mod tests {
         let msg = InstantiateMsg {
             owner: Some(String::from("eric")),
             cw20_addr: String::from(MOCK_CONTRACT_ADDR),
-            fee_percent: None
+            fee_percent: None,
         };
         let info = mock_info(MOCK_CONTRACT_ADDR, &[]);
         instantiate(deps.as_mut(), mock_env(), info, msg).unwrap();
@@ -72,8 +70,9 @@ mod tests {
             target_addr2: String::from("test2"),
         };
         let info_missing_usei = mock_info(MOCK_CONTRACT_ADDR, &[coin(100, "abc")]);
-        let info_multiple_coins = mock_info(MOCK_CONTRACT_ADDR, &[coin(100, "usei"), coin(10, "abc")]);
-        
+        let info_multiple_coins =
+            mock_info(MOCK_CONTRACT_ADDR, &[coin(100, "usei"), coin(10, "abc")]);
+
         let res = execute(deps.as_mut(), mock_env(), info_missing_usei, msg.clone());
         assert!(res.is_err());
         match res.unwrap_err() {
@@ -95,7 +94,7 @@ mod tests {
         let msg = InstantiateMsg {
             owner: Some(String::from("eric")),
             cw20_addr: String::from(MOCK_CONTRACT_ADDR),
-            fee_percent: None
+            fee_percent: None,
         };
         let info = mock_info(MOCK_CONTRACT_ADDR, &[]);
         instantiate(deps.as_mut(), mock_env(), info, msg).unwrap();
@@ -125,7 +124,7 @@ mod tests {
         let msg = InstantiateMsg {
             owner: Some(String::from("eric")),
             cw20_addr: String::from(MOCK_CONTRACT_ADDR),
-            fee_percent: None
+            fee_percent: None,
         };
         let info = mock_info(MOCK_CONTRACT_ADDR, &[]);
         instantiate(deps.as_mut(), mock_env(), info, msg).unwrap();
@@ -156,7 +155,7 @@ mod tests {
         let msg = InstantiateMsg {
             owner: Some(String::from("eric")),
             cw20_addr: String::from(MOCK_CONTRACT_ADDR),
-            fee_percent: None
+            fee_percent: None,
         };
         let info = mock_info(MOCK_CONTRACT_ADDR, &[]);
         instantiate(deps.as_mut(), mock_env(), info, msg).unwrap();
@@ -182,7 +181,6 @@ mod tests {
         };
         execute(deps.as_mut(), mock_env(), info, msg).unwrap();
 
-
         let balance1 = WALLETS
             .load(&deps.storage, Addr::unchecked("test1"))
             .unwrap();
@@ -193,8 +191,8 @@ mod tests {
             .load(&deps.storage, Addr::unchecked("test3"))
             .unwrap();
 
-        assert_eq!(Uint128::new(51+25+2), balance1);
-        assert_eq!(Uint128::new(50+3), balance2);
+        assert_eq!(Uint128::new(51 + 25 + 2), balance1);
+        assert_eq!(Uint128::new(50 + 3), balance2);
         assert_eq!(Uint128::new(25), balance3);
     }
 
@@ -204,15 +202,17 @@ mod tests {
         let msg = InstantiateMsg {
             owner: Some(String::from("eric")),
             cw20_addr: String::from(MOCK_CONTRACT_ADDR),
-            fee_percent: None
+            fee_percent: None,
         };
         let info = mock_info(MOCK_CONTRACT_ADDR, &[]);
         instantiate(deps.as_mut(), mock_env(), info, msg).unwrap();
-        assert!(WALLETS.save(
-            deps.as_mut().storage,
-            Addr::unchecked("test1"),
-            &Uint128::MAX
-        ).is_ok());
+        assert!(WALLETS
+            .save(
+                deps.as_mut().storage,
+                Addr::unchecked("test1"),
+                &Uint128::MAX
+            )
+            .is_ok());
         let info = mock_info("sender", &[coin(u128::MAX, "usei")]);
         let msg = ExecuteMsg::SplitCoins {
             target_addr1: String::from("test1"),
@@ -222,10 +222,10 @@ mod tests {
 
         assert!(res.is_err());
         match res.unwrap_err() {
-            ContractError::Std (_) => {},
+            ContractError::Std(_) => {}
             e => panic!("unexpected error: {:?}", e),
         }
-    
+
         let balance1 = WALLETS
             .load(&deps.storage, Addr::unchecked("test1"))
             .unwrap();
@@ -239,7 +239,7 @@ mod tests {
         let msg = InstantiateMsg {
             owner: Some(String::from("eric")),
             cw20_addr: String::from(MOCK_CONTRACT_ADDR),
-            fee_percent: None
+            fee_percent: None,
         };
         let info = mock_info(MOCK_CONTRACT_ADDR, &[]);
         instantiate(deps.as_mut(), mock_env(), info, msg).unwrap();
@@ -252,7 +252,7 @@ mod tests {
 
         assert!(res.is_err());
         match res.unwrap_err() {
-            ContractError::Std (_) => {},
+            ContractError::Std(_) => {}
             e => panic!("unexpected error: {:?}", e),
         }
     }
@@ -263,7 +263,7 @@ mod tests {
         let msg = InstantiateMsg {
             owner: Some(String::from("eric")),
             cw20_addr: String::from(MOCK_CONTRACT_ADDR),
-            fee_percent: Some(Uint128::new(2))
+            fee_percent: Some(Uint128::new(2)),
         };
         let info = mock_info(MOCK_CONTRACT_ADDR, &[]);
         instantiate(deps.as_mut(), mock_env(), info, msg).unwrap();
@@ -297,7 +297,7 @@ mod tests {
         let msg = InstantiateMsg {
             owner: Some(String::from("eric")),
             cw20_addr: String::from(MOCK_CONTRACT_ADDR),
-            fee_percent: Some(Uint128::new(11))
+            fee_percent: Some(Uint128::new(11)),
         };
         let info = mock_info(MOCK_CONTRACT_ADDR, &[]);
         instantiate(deps.as_mut(), mock_env(), info, msg).unwrap();
@@ -331,7 +331,7 @@ mod tests {
         let msg = InstantiateMsg {
             owner: Some(String::from("eric")),
             cw20_addr: String::from("eric"),
-            fee_percent: None
+            fee_percent: None,
         };
         let info = mock_info("eric", &[]);
         instantiate(deps.as_mut(), mock_env(), info.clone(), msg).unwrap();
@@ -377,16 +377,18 @@ mod tests {
         let msg = InstantiateMsg {
             owner: Some(String::from("eric")),
             cw20_addr: String::from(MOCK_CONTRACT_ADDR),
-            fee_percent: None
+            fee_percent: None,
         };
         let info = mock_info(MOCK_CONTRACT_ADDR, &[]);
         instantiate(deps.as_mut(), mock_env(), info, msg).unwrap();
-        assert!(WALLETS.save(
-            deps.as_mut().storage,
-            Addr::unchecked("test1"),
-            &Uint128::new(49)
-        ).is_ok());
-        
+        assert!(WALLETS
+            .save(
+                deps.as_mut().storage,
+                Addr::unchecked("test1"),
+                &Uint128::new(49)
+            )
+            .is_ok());
+
         let msg = ExecuteMsg::WithdrawCoins {
             amount: Some(Uint128::new(50)),
         };
@@ -394,7 +396,7 @@ mod tests {
 
         let res = execute(deps.as_mut(), mock_env(), info, msg);
         assert!(res.is_err());
-        
+
         match res.unwrap_err() {
             ContractError::InsufficientFunds {} => {}
             e => panic!("unexpected error: {:?}", e),
@@ -407,7 +409,7 @@ mod tests {
         let msg = InstantiateMsg {
             owner: Some(String::from("eric")),
             cw20_addr: String::from(MOCK_CONTRACT_ADDR),
-            fee_percent: None
+            fee_percent: None,
         };
         let info = mock_info(MOCK_CONTRACT_ADDR, &[]);
         instantiate(deps.as_mut(), mock_env(), info, msg).unwrap();
@@ -419,7 +421,7 @@ mod tests {
 
         let res = execute(deps.as_mut(), mock_env(), info, msg);
         assert!(res.is_err());
-        
+
         match res.unwrap_err() {
             ContractError::InsufficientFunds {} => {}
             e => panic!("unexpected error: {:?}", e),
@@ -433,15 +435,17 @@ mod tests {
         let msg = InstantiateMsg {
             owner: Some(String::from("eric")),
             cw20_addr: String::from("eric"),
-            fee_percent: None
+            fee_percent: None,
         };
         let info = mock_info("eric", &[]);
         instantiate(deps.as_mut(), mock_env(), info.clone(), msg).unwrap();
-        assert!(WALLETS.save(
-            deps.as_mut().storage,
-            Addr::unchecked("test1"),
-            &Uint128::new(50)
-        ).is_ok());
+        assert!(WALLETS
+            .save(
+                deps.as_mut().storage,
+                Addr::unchecked("test1"),
+                &Uint128::new(50)
+            )
+            .is_ok());
 
         let msg = ExecuteMsg::WithdrawCoins {
             amount: Some(Uint128::new(20)),
@@ -478,13 +482,11 @@ mod tests {
             })
         );
 
-
         let balance1 = WALLETS
             .load(&deps.storage, Addr::unchecked("test1"))
             .unwrap();
         assert_eq!(balance1, Uint128::new(5));
     }
-
 
     #[test]
     fn query_non_existing_wallet_balance() {
@@ -492,7 +494,7 @@ mod tests {
         let msg = InstantiateMsg {
             owner: Some(String::from("eric")),
             cw20_addr: String::from(MOCK_CONTRACT_ADDR),
-            fee_percent: None
+            fee_percent: None,
         };
         let info = mock_info(MOCK_CONTRACT_ADDR, &[coin(100, "abc"), coin(99, "usei")]);
         instantiate(deps.as_mut(), mock_env(), info.clone(), msg).unwrap();
@@ -503,7 +505,8 @@ mod tests {
             QueryMsg::GetWallet {
                 addr: Addr::unchecked("test1"),
             },
-        ).unwrap();
+        )
+        .unwrap();
 
         let wallet: WalletResponse = from_binary(&res).unwrap();
         assert_eq!("test1", wallet.addr.to_string());
@@ -516,7 +519,7 @@ mod tests {
         let msg = InstantiateMsg {
             owner: Some(String::from("eric")),
             cw20_addr: String::from(MOCK_CONTRACT_ADDR),
-            fee_percent: None
+            fee_percent: None,
         };
         let info = mock_info(MOCK_CONTRACT_ADDR, &[coin(100, "abc"), coin(99, "usei")]);
         instantiate(deps.as_mut(), mock_env(), info.clone(), msg).unwrap();
@@ -535,7 +538,8 @@ mod tests {
             QueryMsg::GetWallet {
                 addr: Addr::unchecked("test1"),
             },
-        ).unwrap();
+        )
+        .unwrap();
 
         let wallet: WalletResponse = from_binary(&res).unwrap();
         assert_eq!("test1", wallet.addr.to_string());
@@ -548,7 +552,7 @@ mod tests {
         let msg = InstantiateMsg {
             owner: Some(String::from("eric")),
             cw20_addr: String::from(MOCK_CONTRACT_ADDR),
-            fee_percent: None
+            fee_percent: None,
         };
         let info = mock_info(MOCK_CONTRACT_ADDR, &[coin(100, "abc"), coin(99, "usei")]);
         instantiate(deps.as_mut(), mock_env(), info.clone(), msg).unwrap();
