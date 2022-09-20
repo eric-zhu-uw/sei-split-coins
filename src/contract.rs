@@ -139,7 +139,6 @@ pub fn execute_withdraw_coins(
         deps.storage,
         info.sender.clone(),
         |balance| -> Result<Uint128, ContractError> {
-            withdraw_amount = balance.unwrap().clone();
             match balance {
                 Some(_) => {
                     withdraw_amount = amount.unwrap_or_else(|| balance.unwrap());
@@ -181,7 +180,7 @@ fn query_owner(deps: Deps) -> StdResult<OwnerResponse> {
 }
 
 fn query_wallet(deps: Deps, addr: Addr) -> StdResult<WalletResponse> {
-    let amount = WALLETS.load(deps.storage, addr.clone())?;
+    let amount = WALLETS.load(deps.storage, addr.clone()).unwrap_or_default();
     Ok(WalletResponse {
         addr: addr,
         amount: amount,
