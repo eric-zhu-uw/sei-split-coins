@@ -3,7 +3,7 @@ use std::fs::create_dir_all;
 
 use cosmwasm_schema::{export_schema, remove_schemas, schema_for};
 
-use sei_split_coins::msg::{ExecuteMsg, InstantiateMsg, OwnerResponse, QueryMsg, WalletResponse};
+use sei_split_coins::msg::{ExecuteMsg, InstantiateMsg, OwnerResponse, QueryMsg, WalletResponse, FeeResponse};
 use sei_split_coins::state::Config;
 
 fn main() {
@@ -18,4 +18,5 @@ fn main() {
     export_schema(&schema_for!(Config), &out_dir);
     export_schema(&schema_for!(WalletResponse), &out_dir);
     export_schema(&schema_for!(OwnerResponse), &out_dir);
+    export_schema(&schema_for!(FeeResponse), &out_dir);
 }
