@@ -9,6 +9,7 @@ mod tests {
     use cosmwasm_std::{from_binary, Addr, CosmosMsg};
 
     #[test]
+    // Test when the InstantiateMsg.owner=None, should set owner as info.sender
     fn set_contract_owner_default_none() {
         let mut deps = mock_dependencies();
         let msg = InstantiateMsg {
@@ -24,6 +25,7 @@ mod tests {
     }
 
     #[test]
+    // Test when InstantiateMsg.owner is defined
     fn set_contract_owner() {
         let mut deps = mock_dependencies();
         let msg = InstantiateMsg {
@@ -39,6 +41,7 @@ mod tests {
     }
 
     #[test]
+    // Test QueryMsg::GetOwner returns OwnerResponse correctly
     fn query_contract_owner() {
         let mut deps = mock_dependencies();
         let msg = InstantiateMsg {
@@ -55,6 +58,7 @@ mod tests {
     }
 
     #[test]
+    // Test calling ExecuteMsg::SplitCoins with tokens besides usei or multiple tokens - should throw error
     fn execute_split_coins_invalid_token_funds() {
         let mut deps = mock_dependencies();
         let msg = InstantiateMsg {
@@ -89,6 +93,7 @@ mod tests {
     }
 
     #[test]
+    // Test calling ExecuteMsg::SplitCoins with an even usei amount - should split equally
     fn execute_split_coins_even_amount() {
         let mut deps = mock_dependencies();
         let msg = InstantiateMsg {
@@ -119,6 +124,7 @@ mod tests {
     }
 
     #[test]
+    // Test calling ExecuteMsg::SplitCoins with an odd usei amount - addr1 should have 1 more than addr2
     fn execute_split_coins_odd_amount() {
         let mut deps = mock_dependencies();
         let msg = InstantiateMsg {
@@ -149,6 +155,7 @@ mod tests {
     }
 
     #[test]
+    // Test calling ExecuteMsg::SplitCoins multiple time to ensure wallets update accordingly
     fn execute_split_coins_multiple_times_same_wallet() {
         // test splitting multiple times into the same wallet and verify correctness
         let mut deps = mock_dependencies();
@@ -197,6 +204,7 @@ mod tests {
     }
 
     #[test]
+    // Test exceeding Uint128::MAX for ExecuteMsg::SplitCoins - should throw error
     fn execute_split_coins_wallet_exceed_uint128() {
         let mut deps = mock_dependencies();
         let msg = InstantiateMsg {
@@ -233,8 +241,8 @@ mod tests {
     }
 
     #[test]
+    // Test ExecuteMsg::SplitCoins with invalid Addr - should throw error
     fn execute_split_coins_invalid_address() {
-        // test with an invalid address - should throw error (not even sure what an invalid address is)
         let mut deps = mock_dependencies();
         let msg = InstantiateMsg {
             owner: Some(String::from("eric")),
@@ -258,6 +266,7 @@ mod tests {
     }
 
     #[test]
+    // Test ExecuteMsg::SplitCoins with a Integer fee collected
     fn execute_split_coins_with_int_fee() {
         let mut deps = mock_dependencies();
         let msg = InstantiateMsg {
@@ -292,6 +301,7 @@ mod tests {
     }
 
     #[test]
+    // Test ExecuteMsg::SplitCoins with a floating point fee collected - round down fee to nearest int
     fn execute_split_coins_with_fractional_fee() {
         let mut deps = mock_dependencies();
         let msg = InstantiateMsg {
@@ -326,7 +336,8 @@ mod tests {
     }
 
     #[test]
-    fn execute_withdraw_coins_default() {
+    // Test ExecuteMsg::WithdrawCoins by setting the amount
+    fn execute_withdraw_coins_set_amount() {
         let mut deps = mock_dependencies();
         let msg = InstantiateMsg {
             owner: Some(String::from("eric")),
@@ -372,6 +383,52 @@ mod tests {
     }
 
     #[test]
+    // Test ExecuteMsg::WithdrawCoins by setting amount=None to withdraw entire balance
+    fn execute_withdraw_coins_entire_balance() {
+        let mut deps = mock_dependencies();
+        let msg = InstantiateMsg {
+            owner: Some(String::from("eric")),
+            cw20_addr: String::from("eric"),
+            fee_percent: None,
+        };
+        let info = mock_info("eric", &[]);
+        instantiate(deps.as_mut(), mock_env(), info.clone(), msg).unwrap();
+
+        let msg = ExecuteMsg::SplitCoins {
+            target_addr1: String::from("test1"),
+            target_addr2: String::from("test2"),
+        };
+        let info = mock_info(MOCK_CONTRACT_ADDR, &[coin(100, "usei")]);
+        let res = execute(deps.as_mut(), mock_env(), info, msg).unwrap();
+        assert_eq!(0, res.messages.len());
+
+        let msg = ExecuteMsg::WithdrawCoins { amount: None };
+        let info = mock_info("test1", &[]);
+
+        let res = execute(deps.as_mut(), mock_env(), info, msg).unwrap();
+        let msg = res.messages[0].clone().msg;
+
+        assert_eq!(
+            msg,
+            CosmosMsg::Bank(BankMsg::Send {
+                to_address: String::from("test1"),
+                amount: coins(50u128, "usei")
+            })
+        );
+
+        let balance1 = WALLETS
+            .load(&deps.storage, Addr::unchecked("test1"))
+            .unwrap();
+        let balance2 = WALLETS
+            .load(&deps.storage, Addr::unchecked("test2"))
+            .unwrap();
+
+        assert_eq!(balance1, Uint128::new(0));
+        assert_eq!(balance2, Uint128::new(50));
+    }
+
+    #[test]
+    // Test withdrawing amount > balance in wallet - should throw error
     fn execute_withdraw_coins_more_than_balance() {
         let mut deps = mock_dependencies();
         let msg = InstantiateMsg {
@@ -404,6 +461,7 @@ mod tests {
     }
 
     #[test]
+    // Test withdrawing from a wallet that does not exist - should throw error
     fn execute_withdraw_coins_wallet_dne() {
         let mut deps = mock_dependencies();
         let msg = InstantiateMsg {
@@ -429,6 +487,7 @@ mod tests {
     }
 
     #[test]
+    // Test withdrawing from the same wallet multiple times - ensure state saved properly
     fn execute_withdraw_coins_multiple_times_same_wallet() {
         // try to withdraw multiple times from same wallet - ensure it updates on every withdrawl
         let mut deps = mock_dependencies();
@@ -489,6 +548,7 @@ mod tests {
     }
 
     #[test]
+    // Test querying when the wallet does not exist - default to return 0
     fn query_non_existing_wallet_balance() {
         let mut deps = mock_dependencies();
         let msg = InstantiateMsg {
@@ -514,6 +574,7 @@ mod tests {
     }
 
     #[test]
+    // Test querying when the wallet balance is 0
     fn query_wallet_zero_balance() {
         let mut deps = mock_dependencies();
         let msg = InstantiateMsg {
@@ -547,6 +608,7 @@ mod tests {
     }
 
     #[test]
+    // Test querying a non-zero wallet balance
     fn query_existing_wallet_balance() {
         let mut deps = mock_dependencies();
         let msg = InstantiateMsg {

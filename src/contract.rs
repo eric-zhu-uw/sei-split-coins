@@ -25,6 +25,7 @@ pub fn instantiate(
 ) -> Result<Response, ContractError> {
     set_contract_version(deps.storage, CONTRACT_NAME, CONTRACT_VERSION)?;
 
+    // store fee_percent as Uint128 since floats are non-serializable
     let fee_percent = msg.fee_percent.unwrap_or(Uint128::new(0));
     if fee_percent > Uint128::new(100) {
         return Err(ContractError::InvalidParams {});
@@ -73,7 +74,7 @@ pub fn execute_split_coins(
     target_addr1: String,
     target_addr2: String,
 ) -> Result<Response, ContractError> {
-    // mark as invalid if there are any tokens besides usei in the execute function
+    // only execute split coins if usei is the only token sent to execute
     if info.funds.len() != 1 || info.funds[0].denom != "usei" {
         return Err(ContractError::InvalidTokenTransfer {});
     }
@@ -84,13 +85,13 @@ pub fn execute_split_coins(
         .or_else(|_| Err(ContractError::InvalidParams {}))?
         .checked_div(PCT_DENOM)
         .or_else(|_| Err(ContractError::InvalidParams {}))?;
-
     let amount = amount - fees_collected;
     let half_amount = amount / Uint128::new(2);
 
     let target_addr1 = deps.api.addr_validate(&target_addr1)?;
     let target_addr2 = deps.api.addr_validate(&target_addr2)?;
 
+    // give target_addr1 extra token if info.funds[0].amount is odd (cannot split evenly)
     WALLETS.update(
         deps.storage,
         target_addr1.clone(),
@@ -133,10 +134,12 @@ pub fn execute_withdraw_coins(
     info: MessageInfo,
     amount: Option<Uint128>,
 ) -> Result<Response, ContractError> {
+    // if amount is None, assume the caller wants to withdraw all coins at info.sender
     if amount.is_some() && amount.unwrap() == Uint128::new(0) {
         return Err(ContractError::InvalidParams {});
     }
 
+    // set withdraw_amount if balance exists - must be mutable since value is found at run-time
     let mut withdraw_amount: Uint128 = Uint128::new(0);
     WALLETS.update(
         deps.storage,
